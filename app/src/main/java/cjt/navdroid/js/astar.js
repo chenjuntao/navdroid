@@ -1,7 +1,7 @@
 var aStar = require('./ngraph.path.min').aStar;
 var createGraph = require('./ngraph.graph.min');
 
-var mytest = {
+global.mytest = {
     test1:function test1() {
 
         let graph = createGraph();
@@ -46,23 +46,19 @@ var mytest = {
         });
         let path = pathFinder.find('a', 'e');
 
-        // console.log(path[0].id);
-        // console.log(path[1].id);
-        // console.log(path[2].id);
-        // console.log(path[3].id);
         return path;
     },
 
     test3 : function test3() {
         let graph = createGraph();
 
-// Our graph has cities:
+        // Our graph has cities:
         graph.addNode('NYC', {x: 0, y: 0});
         graph.addNode('Boston', {x: 1, y: 1});
         graph.addNode('Philadelphia', {x: -1, y: -1});
         graph.addNode('Washington', {x: -2, y: -2});
 
-// and railroads:
+        // and railroads:
         graph.addLink('NYC', 'Boston');
         graph.addLink('NYC', 'Philadelphia');
         graph.addLink('Philadelphia', 'Washington');
@@ -87,10 +83,6 @@ var mytest = {
             }
         });
         let path = pathFinder.find('NYC', 'Washington');
-
-        // console.log(path[0].id);
-        // console.log(path[1].id);
-        // console.log(path[2].id);
 
         return path;
     }

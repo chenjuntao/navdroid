@@ -4,9 +4,9 @@ var webpack = require('webpack');
 module.exports = {
 
     entry:[
-        // "./astar.js",
-        // "./ngraph.graph.min.js",
-        // "./ngraph.path.min.js"
+        "./astar.js",
+        "./ngraph.graph.min.js",
+        "./ngraph.path.min.js"
     ],
     output:{
         filename:'bundle.js',
@@ -15,9 +15,9 @@ module.exports = {
     optimization: {
         minimize: true
     },
-    plugins: [
-        new webpack.ProvidePlugin({
-            ttt: "test"
-        })
-    ]
+    // plugins: [
+    //     new webpack.ProvidePlugin({
+    //         ttt: "test"
+    //     })
+    // ]
 };
