@@ -4,6 +4,7 @@ import android.content.Context;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import com.eclipsesource.v8.V8;
@@ -15,10 +16,7 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class MainActivity extends AppCompatActivity {
     V8 runtime = null;
@@ -120,9 +118,72 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener onClickListener3 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            Integer[] nodex, nodey;
+            try {
+                InputStream is = getResources().openRawResource(R.raw.amsterdam_roads_nodes);
+                BufferedInputStream bis = new BufferedInputStream(is);
+                int len = bis.available();
+                byte []b = new byte[len];
+                bis.read(b, 0, len);
+
+                int nodeCount = len/8;
+                Log.i("node count", ""+nodeCount);
+                nodex = new Integer[nodeCount];
+                nodey = new Integer[nodeCount];
+                for (int i=0;i<b.length;i+=4){
+                    Integer item = byteToInt(new byte[]{b[i], b[i+1], b[i+2], b[i+3]});
+                    if(i%8==0){
+                        nodex[i/8] = item;
+                    }else{
+                        nodey[i/8] = item;
+                    }
+                }
+                Log.i("","sd");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+//            try {
+//                InputStream is = getResources().openRawResource(R.raw.amsterdam_roads_edges);
+//                BufferedInputStream bis = new BufferedInputStream(is);
+//                int len = bis.available();
+//                byte []b = new byte[len];
+//                int size = bis.read(b, 0, len);
+//
+//                Log.i("", ""+size);
+//                for (int i=0;i<b.length;i+=4){
+//                    Integer item = byteToInt(new byte[]{b[i], b[i+1], b[i+2], b[i+3]});
+//                    Log.i("edge", ""+item);
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
             String result = AStar.test2().toString();
             Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
         }
     };
+
+    public static float getFloat(byte[] b) {
+        // 4 bytes
+        int accum = 0;
+        for ( int shiftBy = 0; shiftBy < 4; shiftBy++ ) {
+            accum |= (b[shiftBy] & 0xff) << shiftBy * 8;
+        }
+        return Float.intBitsToFloat(accum);
+    }
+
+    public static int byteToInt(byte[] b) {
+        int s = 0;
+        int s0 = b[0] & 0xff;// 最低位
+        int s1 = b[1] & 0xff;
+        int s2 = b[2] & 0xff;
+        int s3 = b[3] & 0xff;
+        s3 <<= 24;
+        s2 <<= 16;
+        s1 <<= 8;
+        s = s0 | s1 | s2 | s3;
+        return s;
+    }
 
 }
