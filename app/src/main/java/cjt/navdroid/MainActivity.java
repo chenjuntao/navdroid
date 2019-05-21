@@ -1,14 +1,17 @@
 package cjt.navdroid;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -16,11 +19,10 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
-import java.io.*;
-
 public class MainActivity extends AppCompatActivity {
     V8 runtime = null;
     MapView map = null;
+    ProgressBar progress = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,6 +44,11 @@ public class MainActivity extends AppCompatActivity {
 
         //inflate and create the map
         setContentView(R.layout.activity_main);
+
+
+        //获得界面布局里面的进度条组件
+        progress = (ProgressBar) findViewById(R.id.progress);
+
 
         findViewById(R.id.btn1).setOnClickListener(onClickListener1);
         findViewById(R.id.btn2).setOnClickListener(onClickListener2);
@@ -115,75 +122,33 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //创建一个负责更新进度条的Handler
+    @SuppressLint("HandlerLeak")
+    final Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+
+            if (msg.what == 0x111) {
+                progress.setProgress(msg.arg1);
+                Log.i("-----------------", ""+msg.arg1);
+            }
+        }
+    };
+
     private View.OnClickListener onClickListener3 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Integer[] nodex, nodey;
-            try {
-                InputStream is = getResources().openRawResource(R.raw.amsterdam_roads_nodes);
-                BufferedInputStream bis = new BufferedInputStream(is);
-                int len = bis.available();
-                byte []b = new byte[len];
-                bis.read(b, 0, len);
 
-                int nodeCount = len/8;
-                Log.i("node count", ""+nodeCount);
-                nodex = new Integer[nodeCount];
-                nodey = new Integer[nodeCount];
-                for (int i=0;i<b.length;i+=4){
-                    Integer item = byteToInt(new byte[]{b[i], b[i+1], b[i+2], b[i+3]});
-                    if(i%8==0){
-                        nodex[i/8] = item;
-                    }else{
-                        nodey[i/8] = item;
-                    }
-                }
-                Log.i("","sd");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            progress.setVisibility(View.VISIBLE);
+            ReadGeoJson readGeoJson = new ReadGeoJson();
+            readGeoJson.readGeoJson(MainActivity.this, mHandler);
+//            progress.setVisibility(View.GONE);
 
-//            try {
-//                InputStream is = getResources().openRawResource(R.raw.amsterdam_roads_edges);
-//                BufferedInputStream bis = new BufferedInputStream(is);
-//                int len = bis.available();
-//                byte []b = new byte[len];
-//                int size = bis.read(b, 0, len);
-//
-//                Log.i("", ""+size);
-//                for (int i=0;i<b.length;i+=4){
-//                    Integer item = byteToInt(new byte[]{b[i], b[i+1], b[i+2], b[i+3]});
-//                    Log.i("edge", ""+item);
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-
-            String result = AStar.test2().toString();
+            String result = AStar.test2();
             Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
         }
     };
 
-    public static float getFloat(byte[] b) {
-        // 4 bytes
-        int accum = 0;
-        for ( int shiftBy = 0; shiftBy < 4; shiftBy++ ) {
-            accum |= (b[shiftBy] & 0xff) << shiftBy * 8;
-        }
-        return Float.intBitsToFloat(accum);
-    }
 
-    public static int byteToInt(byte[] b) {
-        int s = 0;
-        int s0 = b[0] & 0xff;// 最低位
-        int s1 = b[1] & 0xff;
-        int s2 = b[2] & 0xff;
-        int s3 = b[3] & 0xff;
-        s3 <<= 24;
-        s2 <<= 16;
-        s1 <<= 8;
-        s = s0 | s1 | s2 | s3;
-        return s;
-    }
 
 }

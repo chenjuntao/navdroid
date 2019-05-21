@@ -28,6 +28,7 @@ dependencies {
 
     implementation 'org.osmdroid:osmdroid-android:6.1.0'
     implementation 'com.eclipsesource.j2v8:j2v8:4.5.0@aar'
+    implementation 'com.cocoahero.android:geojson:1.0.1@jar'
 }
 
 configurations.all {
