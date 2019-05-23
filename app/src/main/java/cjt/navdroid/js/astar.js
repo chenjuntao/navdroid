@@ -28,12 +28,12 @@ global.astar_function = {
     test2 : function test2() {
         let graph = createGraph();
 
-// We want to find a path from a to e.
-// a -> b <- e
-//  \       /
-//   c -> d
-// In undirected graph the `a, b, e` will be the solution.
-// In directed graph it sohuld be `a c d e`
+    // We want to find a path from a to e.
+    // a -> b <- e
+    //  \       /
+    //   c -> d
+    // In undirected graph the `a, b, e` will be the solution.
+    // In directed graph it sohuld be `a c d e`
         graph.addLink('a', 'b');
         graph.addLink('e', 'b');
         graph.addLink('a', 'c');
@@ -41,9 +41,9 @@ global.astar_function = {
         graph.addLink('d', 'e');
 
         let pathFinder = npath.aStar(graph, {
-            oriented: true
+            // oriented: true
         });
-        let path = pathFinder.find('a', 'd');
+        let path = pathFinder.find('a', 'e');
 
         return path;
     },
@@ -79,7 +79,6 @@ global.astar_function = {
 
         // let nodeData = graphData.nodes;
         // let edgeData = graphData.edges;
-
             for (let i = 0; i < nodeData.length; i++) {
                 let x = nodeData[i].lon;
                 let y = nodeData[i].lat;
