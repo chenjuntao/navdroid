@@ -1,6 +1,5 @@
 package cjt.navdroid;
 
-import android.util.Log;
 import com.cocoahero.android.geojson.Position;
 
 import java.util.ArrayList;

@@ -1,14 +1,12 @@
 package cjt.navdroid;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.eclipsesource.v8.V8;
@@ -16,13 +14,19 @@ import com.eclipsesource.v8.V8Object;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     V8 runtime = null;
     MapView map = null;
-    ProgressBar progress = null;
+    public ProgressBar progress = null;
+    public Button btnLoad = null;
+    public Button btnNav = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,15 +52,16 @@ public class MainActivity extends AppCompatActivity {
 
         //获得界面布局里面的进度条组件
         progress = (ProgressBar) findViewById(R.id.progress);
-
+        btnLoad = (Button) findViewById(R.id.btnLoad);
+        btnNav = (Button) findViewById(R.id.btnNav);
 
         findViewById(R.id.btn1).setOnClickListener(onClickListener1);
         findViewById(R.id.btn2).setOnClickListener(onClickListener2);
-        findViewById(R.id.btn3).setOnClickListener(onClickListener3);
+        findViewById(R.id.btnLoad).setOnClickListener(onClickListenerLoad);
+        findViewById(R.id.btnNav).setOnClickListener(onClickListenerNav);
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
-
 
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
@@ -118,37 +123,73 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
             person.release();
             hockeyTeam.release();
-
         }
     };
 
-    //创建一个负责更新进度条的Handler
-    @SuppressLint("HandlerLeak")
-    final Handler mHandler = new Handler(){
+    private View.OnClickListener onClickListenerLoad = new View.OnClickListener() {
         @Override
-        public void handleMessage(Message msg) {
+        public void onClick(View v) {
+            ReadGeoJson readGeoJson = new ReadGeoJson();
+            readGeoJson.mainActivity = MainActivity.this;
+            readGeoJson.execute();
+        }
+    };
 
-            if (msg.what == 0x111) {
-                progress.setProgress(msg.arg1);
-                Log.i("-----------------", ""+msg.arg1);
+    private View.OnClickListener onClickListenerNav = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            if (!btnLoad.isEnabled()) {
+                EditText txtFrom = (EditText) findViewById(R.id.txtFromId);
+                Integer fromId = Integer.parseInt(txtFrom.getText().toString());
+                EditText txtTo = (EditText) findViewById(R.id.txtToId);
+                Integer toId = Integer.parseInt(txtTo.getText().toString());
+
+                List<CjtNode> result = AStar.astarNavRoad(fromId, toId);
+                if (result.size() == 0) {
+                    Toast.makeText(MainActivity.this, "无结果！", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "结果数量为：" + result.size(), Toast.LENGTH_LONG).show();
+                    drawLine(result);
+                }
+            }else{
+                Toast.makeText(MainActivity.this, "请先加载数据！", Toast.LENGTH_LONG).show();
             }
         }
     };
 
-    private View.OnClickListener onClickListener3 = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
+    private void drawLine(List<CjtNode> lineNodes) {
+        List<GeoPoint> points = new ArrayList<>();
+        double xmin=180,xmax=-180,ymin=90,ymax=-90;
+        for (int i = 0; i < lineNodes.size(); i++) {
+            double lon = lineNodes.get(i).lon;
+            double lat = lineNodes.get(i).lat;
+            points.add(new GeoPoint(lat, lon));
 
-//            progress.setVisibility(View.VISIBLE);
-            ReadGeoJson readGeoJson = new ReadGeoJson();
-            readGeoJson.readGeoJson(MainActivity.this, mHandler);
-//            progress.setVisibility(View.GONE);
+            if(lon<xmin){
+                xmin = lon;
+            }else if(lon>xmax){
+                xmax = lon;
+            }
 
-            String result = AStar.test2();
-            Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
+            if(lat<ymin){
+                ymin=lat;
+            }else if(lat>ymax){
+                ymax=lat;
+            }
         }
-    };
+
+        org.osmdroid.views.overlay.Polyline Polyline = new org.osmdroid.views.overlay.Polyline();
+        Polyline.setWidth(10);
+        Polyline.setColor(0xFF1B7BCD);
+        Polyline.setPoints(points);
+        map.getOverlays().clear();
+        map.getOverlays().add(Polyline);
 
 
-
+        //计算边界值，定位边界
+        final BoundingBox box = new BoundingBox(ymax,xmax,ymin,xmin);
+        map.getController().zoomTo(6);
+        map.zoomToBoundingBox(box, true);
+    }
 }

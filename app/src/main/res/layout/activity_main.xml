@@ -16,24 +16,49 @@
         </org.osmdroid.views.MapView>
     </LinearLayout>
 
-
     <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="top">
-        <Button android:id="@+id/btn1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="int"/>
-        <Button android:id="@+id/btn2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="obj"/>
-        <Button android:id="@+id/btn3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="file"/>
-
+            android:layout_alignTop="@id/main"
+            android:orientation="vertical">
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            <Button android:id="@+id/btn1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="测试int"/>
+            <Button android:id="@+id/btn2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="测试obj"/>
+            <Button android:id="@+id/btnLoad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="加载数据"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="fromId"/>
+            <EditText android:id="@+id/txtFromId"
+                      android:layout_width="60dp"
+                      android:inputType="number"
+                      android:layout_height="wrap_content"/>
+            <TextView android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="fromId"/>
+            <EditText android:id="@+id/txtToId"
+                      android:layout_width="60dp"
+                      android:inputType="number"
+                      android:layout_height="wrap_content"/>
+            <Button android:id="@+id/btnNav"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:enabled="false"
+                    android:text="导航"/>
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout android:layout_width="match_parent"
@@ -44,6 +69,7 @@
                 android:layout_height="match_parent"
                 style="@android:style/Widget.ProgressBar.Horizontal"
                 android:id="@+id/progress"
+                android:visibility="gone"
                 android:max="100"/>
     </LinearLayout>
 

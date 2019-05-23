@@ -1,8 +1,8 @@
-var aStar = require('./ngraph.path.min').aStar;
 var createGraph = require('./ngraph.graph.min');
+var npath = require('./ngraph.path.min');
 
-global.mytest = {
-    test1:function test1() {
+global.astar_function = {
+    test1 : function test1() {
 
         let graph = createGraph();
 
@@ -12,7 +12,7 @@ global.mytest = {
         graph.addLink('b', 'd', {weight: 10});
 
 
-        let pathFinder = aStar(graph, {
+        let pathFinder = npath.aStar(graph, {
             distance(a, b, link) {
                 return link.data.weight;
             }
@@ -40,11 +40,10 @@ global.mytest = {
         graph.addLink('c', 'd');
         graph.addLink('d', 'e');
 
-
-        let pathFinder = aStar(graph, {
+        let pathFinder = npath.aStar(graph, {
             oriented: true
         });
-        let path = pathFinder.find('a', 'e');
+        let path = pathFinder.find('a', 'd');
 
         return path;
     },
@@ -63,27 +62,49 @@ global.mytest = {
         graph.addLink('NYC', 'Philadelphia');
         graph.addLink('Philadelphia', 'Washington');
 
-        var pathFinder = aStar(graph, {
-            distance(fromNode, toNode) {
-                // In this case we have coordinates. Lets use them as
-                // distance between two nodes:
-                let dx = fromNode.data.x - toNode.data.x;
-                let dy = fromNode.data.y - toNode.data.y;
-
-                return Math.sqrt(dx * dx + dy * dy);
-            },
-            heuristic(fromNode, toNode) {
-                // this is where we "guess" distance between two nodes.
-                // In this particular case our guess is the same as our distance
-                // function:
-                let dx = fromNode.data.x - toNode.data.x;
-                let dy = fromNode.data.y - toNode.data.y;
-
-                return Math.sqrt(dx * dx + dy * dy);
-            }
+        var pathFinder = npath.aStar(graph, {
+            distance: this.distance,
+            heuristic: this.distance
         });
         let path = pathFinder.find('NYC', 'Washington');
 
         return path;
+    },
+
+    graph : {},
+    pathFinder : {},
+    initGraph : function initGraph(nodeData, edgeData) {
+
+        let graph = createGraph();
+
+        // let nodeData = graphData.nodes;
+        // let edgeData = graphData.edges;
+
+            for (let i = 0; i < nodeData.length; i++) {
+                let x = nodeData[i].lon;
+                let y = nodeData[i].lat;
+                graph.addNode(i, {x, y});
+            }
+
+            for (let i = 0; i < edgeData.length; i++) {
+                graph.addLink(edgeData[i].node1, edgeData[i].node2);
+            }
+
+            this.pathFinder = npath.aStar(graph, {
+                distance: this.distance,
+                // heuristic: this.distance
+            });
+    },
+
+    findPath : function findPath(fromId, toId) {
+        return this.pathFinder.find(fromId, toId);
+    },
+
+    distance : function distance(a, b) {
+        let dx = a.x - b.x;
+        let dy = a.y - b.y;
+
+        return Math.sqrt(dx * dx + dy * dy)
     }
-}
+
+};
