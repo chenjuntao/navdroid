@@ -41,7 +41,7 @@ global.astar_function = {
         graph.addLink('d', 'e');
 
         let pathFinder = npath.aStar(graph, {
-            // oriented: true
+            oriented: true
         });
         let path = pathFinder.find('a', 'e');
 
