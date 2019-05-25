@@ -64,7 +64,7 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     public void readGeoJson() {
 
         try {
-            InputStream is = mainActivity.getResources().openRawResource(R.raw.cs_roadl);
+            InputStream is = mainActivity.getResources().openRawResource(R.raw.changsha_road);
             GeoJSONObject geoJSON = GeoJSON.parse(is);
             String geojsonType = geoJSON.getType();
             Log.i("ttt", geojsonType);
