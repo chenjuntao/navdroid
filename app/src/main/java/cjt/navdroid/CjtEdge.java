@@ -1,10 +1,10 @@
 package cjt.navdroid;
 
 public class CjtEdge {
-    public Integer node1;
-    public Integer node2;
+    public String node1;
+    public String node2;
 
-    public CjtEdge(Integer n1, Integer n2){
+    public CjtEdge(String n1, String n2){
         node1 = n1;
         node2 = n2;
     }

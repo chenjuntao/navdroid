@@ -80,9 +80,10 @@ global.astar_function = {
         // let nodeData = graphData.nodes;
         // let edgeData = graphData.edges;
             for (let i = 0; i < nodeData.length; i++) {
+                let id = nodeData[i].nodeId;
                 let x = nodeData[i].lon;
                 let y = nodeData[i].lat;
-                graph.addNode(i, {x, y});
+                graph.addNode(id, {x, y});
             }
 
             for (let i = 0; i < edgeData.length; i++) {

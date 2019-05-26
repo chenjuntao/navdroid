@@ -5,10 +5,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import com.cocoahero.android.geojson.*;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
@@ -17,9 +21,9 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     private CjtGraph cjtGraph = new CjtGraph();
 
     @Override
-    protected void onPreExecute(){
+    protected void onPreExecute() {
         super.onPreExecute();
-        Log.d("ReadGeoJson","开始前的准备工作...");
+        Log.d("ReadGeoJson", "开始前的准备工作...");
         mainActivity.progress.setVisibility(View.VISIBLE);
         mainActivity.btnLoad.setEnabled(false);
         Toast.makeText(mainActivity, "开始读取数据，请稍侯。。。:", Toast.LENGTH_SHORT).show();
@@ -31,7 +35,8 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
         //这里的参数类型是 AsyncTask<Void, Integer, Void>中的Integer决定的，在onProgressUpdate中可以得到这个值去更新UI主线程，这里是异步线程
         Log.d("ReadGeoJson", "id:" + Thread.currentThread().getId() + " name:" + Thread.currentThread().getName());
 
-        readGeoJson();
+//        readGeoJson();
+        readJson();
         return null;
     }
 
@@ -49,7 +54,7 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         Log.i("ReadGeoJson", "执行完成!, Thread name: " + Thread.currentThread().getName());
-        Toast.makeText(mainActivity, "执行完成，一共读取"+cjtGraph.nodes.size()+"个节点，读取"+cjtGraph.edges.size()+"条边。", Toast.LENGTH_LONG).show();
+        Toast.makeText(mainActivity, "执行完成，一共读取" + cjtGraph.nodes.size() + "个节点，读取" + cjtGraph.edges.size() + "条边。", Toast.LENGTH_LONG).show();
         mainActivity.progress.setVisibility(View.GONE);
         mainActivity.btnNav.setEnabled(true);
         AStar.astarReadGraph(cjtGraph);
@@ -87,6 +92,40 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
         } catch (
                 IOException | JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void readJson() {
+        try {
+            StringBuffer jsonStr = new StringBuffer();
+            InputStream stream = mainActivity.getResources().openRawResource(R.raw.changsha);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                jsonStr.append(line);
+            }
+            JSONObject jsonObj = new JSONObject(jsonStr.toString());
+            JSONArray elements = jsonObj.getJSONArray("elements");
+            int eleCount = elements.length();
+            for (int i = 0; i < elements.length(); i++) {
+                JSONObject ele = (JSONObject) elements.get(i);
+                String eleType = ele.getString("type");
+                if (eleType.equals("node")) {
+                    cjtGraph.addNode(ele);
+                } else if (eleType.equals("way")) {
+                    cjtGraph.addWay(ele);
+                }
+
+                int newProcess = i * 100 / eleCount;
+                if (newProcess > current) {
+                    current = newProcess;
+                    publishProgress(current);
+                }
+            }
+        } catch (
+                IOException | JSONException e) {
+            e.printStackTrace();
+
         }
     }
 }

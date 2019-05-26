@@ -12,7 +12,7 @@ public class ReadRoadData {
     public void readRoadRawTest(Context context){
         Integer[] nodex, nodey;
             try {
-                InputStream is = context.getResources().openRawResource(R.raw.amsterdam_roads_co);
+                InputStream is = context.getResources().openRawResource(R.raw.changsha_nodes);
                 BufferedInputStream bis = new BufferedInputStream(is);
                 int len = bis.available();
                 byte []b = new byte[len];
@@ -36,7 +36,7 @@ public class ReadRoadData {
             }
 
         try {
-                InputStream is = context.getResources().openRawResource(R.raw.amsterdam_roads_gr);
+                InputStream is = context.getResources().openRawResource(R.raw.changsha_edges);
                 BufferedInputStream bis = new BufferedInputStream(is);
                 int len = bis.available();
                 byte []b = new byte[len];

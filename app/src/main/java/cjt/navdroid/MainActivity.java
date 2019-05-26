@@ -141,9 +141,9 @@ public class MainActivity extends AppCompatActivity {
 
             if (!btnLoad.isEnabled()) {
                 EditText txtFrom = (EditText) findViewById(R.id.txtFromId);
-                Integer fromId = Integer.parseInt(txtFrom.getText().toString());
+                String fromId = txtFrom.getText().toString();
                 EditText txtTo = (EditText) findViewById(R.id.txtToId);
-                Integer toId = Integer.parseInt(txtTo.getText().toString());
+                String toId = txtTo.getText().toString();
 
                 List<CjtNode> result = AStar.astarNavRoad(fromId, toId);
                 if (result.size() == 0) {
