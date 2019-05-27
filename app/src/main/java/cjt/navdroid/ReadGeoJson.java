@@ -18,7 +18,7 @@ import java.util.List;
 public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     private int current = 0;
     public MainActivity mainActivity;
-    private CjtGraph cjtGraph = new CjtGraph();
+
 
     @Override
     protected void onPreExecute() {
@@ -54,10 +54,11 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         Log.i("ReadGeoJson", "执行完成!, Thread name: " + Thread.currentThread().getName());
-        Toast.makeText(mainActivity, "执行完成，一共读取" + cjtGraph.nodes.size() + "个节点，读取" + cjtGraph.edges.size() + "条边。", Toast.LENGTH_LONG).show();
+        Toast.makeText(mainActivity, "执行完成，一共读取" + mainActivity.cjtGraph.nodes.size()
+                + "个节点，读取" + mainActivity.cjtGraph.edges.size() + "条边。", Toast.LENGTH_LONG).show();
         mainActivity.progress.setVisibility(View.GONE);
         mainActivity.btnNav.setEnabled(true);
-        AStar.astarReadGraph(cjtGraph);
+        AStar.astarReadGraph(mainActivity.cjtGraph);
     }
 
     @Override
@@ -80,7 +81,7 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
                 Geometry geometry = feature.getGeometry();
                 LineString lineString = (LineString) geometry;
                 List<Position> positions = lineString.getPositions();
-                cjtGraph.addLine(positions);
+                mainActivity.cjtGraph.addLine(positions);
 
                 int newProcess = i * 100 / fcs.size();
                 if (newProcess > current) {
@@ -111,9 +112,9 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
                 JSONObject ele = (JSONObject) elements.get(i);
                 String eleType = ele.getString("type");
                 if (eleType.equals("node")) {
-                    cjtGraph.addNode(ele);
+                    mainActivity.cjtGraph.addNode(ele);
                 } else if (eleType.equals("way")) {
-                    cjtGraph.addWay(ele);
+                    mainActivity.cjtGraph.addWay(ele);
                 }
 
                 int newProcess = i * 100 / eleCount;

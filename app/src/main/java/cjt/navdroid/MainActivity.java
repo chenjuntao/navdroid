@@ -1,9 +1,11 @@
 package cjt.navdroid;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,10 +15,12 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
+import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,13 @@ public class MainActivity extends AppCompatActivity {
     public ProgressBar progress = null;
     public Button btnLoad = null;
     public Button btnNav = null;
+
+    public CjtGraph cjtGraph = new CjtGraph();
+
+    private boolean isFromFocus, isToFocus;
+    private ItemizedIconOverlay fromIdOverlay, toIdOverlay;
+
+    private Polyline linePath;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,27 +60,84 @@ public class MainActivity extends AppCompatActivity {
         //inflate and create the map
         setContentView(R.layout.activity_main);
 
+        final EditText txtFromId = findViewById(R.id.txtFromId);
+        setFromToIdEvents(txtFromId, true);
+        final EditText txtToId = findViewById(R.id.txtToId);
+        setFromToIdEvents(txtToId, false);
 
         //获得界面布局里面的进度条组件
-        progress = (ProgressBar) findViewById(R.id.progress);
-        btnLoad = (Button) findViewById(R.id.btnLoad);
-        btnNav = (Button) findViewById(R.id.btnNav);
+        progress =  findViewById(R.id.progress);
+        btnLoad = findViewById(R.id.btnLoad);
+        btnNav = findViewById(R.id.btnNav);
 
         findViewById(R.id.btn1).setOnClickListener(onClickListener1);
         findViewById(R.id.btn2).setOnClickListener(onClickListener2);
         findViewById(R.id.btnLoad).setOnClickListener(onClickListenerLoad);
         findViewById(R.id.btnNav).setOnClickListener(onClickListenerNav);
 
-        map = (MapView) findViewById(R.id.map);
+        map = findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
-
-        map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
 
         IMapController mapController = map.getController();
-        mapController.setZoom(9.5);
-        GeoPoint startPoint = new GeoPoint(28.1, 112.1);
+        mapController.zoomTo(13);
+        GeoPoint startPoint = new GeoPoint(28.2, 112.99);
         mapController.setCenter(startPoint);
+
+        final MapEventsReceiver mReceive = new MapEventsReceiver() {
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint p) {
+
+                return false;
+            }
+
+            @Override
+            public boolean longPressHelper(GeoPoint p) {
+                ArrayList<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
+                if(isFromFocus) {
+                    OverlayItem fromItem = new OverlayItem("fromId", "fromId", p);
+                    overlayItems.add(fromItem);
+                    if(map.getOverlays().contains(fromIdOverlay)){
+                        map.getOverlays().remove(fromIdOverlay);
+                    }
+                    fromIdOverlay = new ItemizedIconOverlay(overlayItems, null, getApplicationContext());
+                    map.getOverlays().add(fromIdOverlay);
+                    txtFromId.setText(cjtGraph.getNearestNode(p.getLongitude(), p.getLatitude()));
+                }else if(isToFocus){
+                    OverlayItem toItem = new OverlayItem("toId", "toId", p);
+                    overlayItems.add(toItem);
+                    if(map.getOverlays().contains(toIdOverlay)){
+                        map.getOverlays().remove(toIdOverlay);
+                    }
+                    toIdOverlay = new ItemizedIconOverlay(overlayItems, null, getApplicationContext());
+                    map.getOverlays().add(toIdOverlay);
+                    txtToId.setText(cjtGraph.getNearestNode(p.getLongitude(), p.getLatitude()));
+                }
+                return false;
+            }
+        };
+        MapEventsOverlay mo = new MapEventsOverlay(mReceive);
+        map.getOverlayManager().add(mo);
+    }
+
+    private void setFromToIdEvents(final EditText txtId, final boolean isFromId) {
+        txtId.setInputType(InputType.TYPE_NULL);//强制不自动弹出软键盘
+        txtId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(isFromId){
+                    isFromFocus = hasFocus;
+                }else{
+                    isToFocus = hasFocus;
+                }
+
+                if (hasFocus) {
+                    txtId.setBackgroundColor(Color.parseColor("#e000FF00"));  //获取焦点后更改背景色
+                } else {
+                    txtId.setBackgroundColor(Color.parseColor("#01000000"));  //失去焦点后更改背景色
+                }
+            }
+        });
     }
 
     @Override
@@ -179,12 +247,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        org.osmdroid.views.overlay.Polyline Polyline = new org.osmdroid.views.overlay.Polyline();
-        Polyline.setWidth(10);
-        Polyline.setColor(0xFF1B7BCD);
-        Polyline.setPoints(points);
-        map.getOverlays().clear();
-        map.getOverlays().add(Polyline);
+        if(linePath == null) {
+            linePath = new Polyline();
+            linePath.setWidth(10);
+            linePath.setColor(0xFF1B7BCD);
+            map.getOverlays().add(linePath);
+        }else {
+            linePath.setPoints(points);
+            map.refreshDrawableState();
+        }
 
 
         //计算边界值，定位边界

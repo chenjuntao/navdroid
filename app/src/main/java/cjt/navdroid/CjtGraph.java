@@ -1,6 +1,5 @@
 package cjt.navdroid;
 
-import android.util.Log;
 import com.cocoahero.android.geojson.Position;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -78,5 +77,20 @@ public class CjtGraph {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getNearestNode(double lon, double lat){
+        String nearestNodeId = "";
+        double minDistance = 10000000;
+        for (CjtNode cjtNode : nodes){
+            double dx = lon-cjtNode.lon;
+            double dy = lat-cjtNode.lat;
+            double distance = Math.sqrt(dx*dx+dy*dy);
+            if (minDistance>distance){
+                minDistance = distance;
+                nearestNodeId = cjtNode.nodeId;
+            }
+        }
+        return nearestNodeId;
     }
 }

@@ -92,7 +92,7 @@ global.astar_function = {
 
             this.pathFinder = npath.aStar(graph, {
                 distance: this.distance,
-                // heuristic: this.distance
+                heuristic: this.distance
             });
     },
 
@@ -101,8 +101,9 @@ global.astar_function = {
     },
 
     distance : function distance(a, b) {
-        let dx = a.x - b.x;
-        let dy = a.y - b.y;
+        let ractor = 10000000;
+        let dx = a.x*ractor - b.x*ractor;
+        let dy = a.y*ractor - b.y*ractor;
 
         return Math.sqrt(dx * dx + dy * dy)
     }
