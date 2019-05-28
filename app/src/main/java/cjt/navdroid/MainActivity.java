@@ -7,17 +7,13 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.Toast;
+import android.widget.*;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Object;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.*;
@@ -31,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     public ProgressBar progress = null;
     public Button btnLoad = null;
     public Button btnNav = null;
+    public TextView txtMsg = null;
 
     public CjtGraph cjtGraph = new CjtGraph();
 
@@ -69,20 +66,15 @@ public class MainActivity extends AppCompatActivity {
         progress =  findViewById(R.id.progress);
         btnLoad = findViewById(R.id.btnLoad);
         btnNav = findViewById(R.id.btnNav);
+        txtMsg = findViewById(R.id.txtMsg);
 
         findViewById(R.id.btn1).setOnClickListener(onClickListener1);
-        findViewById(R.id.btn2).setOnClickListener(onClickListener2);
         findViewById(R.id.btnLoad).setOnClickListener(onClickListenerLoad);
         findViewById(R.id.btnNav).setOnClickListener(onClickListenerNav);
 
         map = findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
-
-        IMapController mapController = map.getController();
-        mapController.zoomTo(13);
-        GeoPoint startPoint = new GeoPoint(28.2, 112.99);
-        mapController.setCenter(startPoint);
 
         final MapEventsReceiver mReceive = new MapEventsReceiver() {
             @Override
@@ -94,30 +86,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean longPressHelper(GeoPoint p) {
                 ArrayList<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
+                CjtNode nearestNode = cjtGraph.getNearestNode(p.getLongitude(), p.getLatitude());
+                GeoPoint nearestPoint = new GeoPoint(nearestNode.lat, nearestNode.lon);
                 if(isFromFocus) {
-                    OverlayItem fromItem = new OverlayItem("fromId", "fromId", p);
+                    OverlayItem fromItem = new OverlayItem("fromId", "fromId", nearestPoint);
                     overlayItems.add(fromItem);
                     if(map.getOverlays().contains(fromIdOverlay)){
                         map.getOverlays().remove(fromIdOverlay);
                     }
                     fromIdOverlay = new ItemizedIconOverlay(overlayItems, null, getApplicationContext());
                     map.getOverlays().add(fromIdOverlay);
-                    txtFromId.setText(cjtGraph.getNearestNode(p.getLongitude(), p.getLatitude()));
+                    txtFromId.setText(nearestNode.nodeId);
                 }else if(isToFocus){
-                    OverlayItem toItem = new OverlayItem("toId", "toId", p);
+                    OverlayItem toItem = new OverlayItem("toId", "toId", nearestPoint);
                     overlayItems.add(toItem);
                     if(map.getOverlays().contains(toIdOverlay)){
                         map.getOverlays().remove(toIdOverlay);
                     }
                     toIdOverlay = new ItemizedIconOverlay(overlayItems, null, getApplicationContext());
                     map.getOverlays().add(toIdOverlay);
-                    txtToId.setText(cjtGraph.getNearestNode(p.getLongitude(), p.getLatitude()));
+                    txtToId.setText(nearestNode.nodeId);
                 }
                 return false;
             }
         };
         MapEventsOverlay mo = new MapEventsOverlay(mReceive);
         map.getOverlayManager().add(mo);
+
+        IMapController mapController = map.getController();
+        mapController.setZoom(13.0);
+        GeoPoint startPoint = new GeoPoint(28.2, 113);
+//        GeoPoint startPoint = new GeoPoint(16.83, 112.33);
+        mapController.setCenter(startPoint);
     }
 
     private void setFromToIdEvents(final EditText txtId, final boolean isFromId) {
@@ -172,25 +172,8 @@ public class MainActivity extends AppCompatActivity {
                     + "var world = 'world!';\n"
                     + "hello.concat(world).length;\n");
             Toast.makeText(MainActivity.this, "result:" + result, Toast.LENGTH_LONG).show();
-        }
-    };
 
-    private View.OnClickListener onClickListener2 = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            runtime.executeVoidScript(""
-                    + "var person = {};\n"
-                    + "var hockeyTeam = {name : 'WolfPack'};\n"
-                    + "person.first = 'Ian';\n"
-                    + "person['last'] = 'Bull';\n"
-                    + "person.hockeyTeam = hockeyTeam;\n");
-
-            V8Object person = runtime.getObject("person");
-            V8Object hockeyTeam = person.getObject("hockeyTeam");
-            String result = "JS result name = " + hockeyTeam.getString("name");
-            Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
-            person.release();
-            hockeyTeam.release();
+            ReadRoadData.readRoadRawTest(MainActivity.this);
         }
     };
 
@@ -213,7 +196,8 @@ public class MainActivity extends AppCompatActivity {
                 EditText txtTo = (EditText) findViewById(R.id.txtToId);
                 String toId = txtTo.getText().toString();
 
-                List<CjtNode> result = AStar.astarNavRoad(fromId, toId);
+                List<CjtNode> result = AStar.astarNavRoad(MainActivity.this.cjtGraph,  fromId, toId);
+
                 if (result.size() == 0) {
                     Toast.makeText(MainActivity.this, "无结果！", Toast.LENGTH_LONG).show();
                 } else {
@@ -251,16 +235,15 @@ public class MainActivity extends AppCompatActivity {
             linePath = new Polyline();
             linePath.setWidth(10);
             linePath.setColor(0xFF1B7BCD);
+            linePath.setPoints(points);
             map.getOverlays().add(linePath);
         }else {
             linePath.setPoints(points);
             map.refreshDrawableState();
         }
 
-
         //计算边界值，定位边界
-        final BoundingBox box = new BoundingBox(ymax,xmax,ymin,xmin);
-        map.getController().zoomTo(6);
-        map.zoomToBoundingBox(box, true);
+//        final BoundingBox box = new BoundingBox(ymax,xmax,ymin,xmin);
+//        map.zoomToBoundingBox(box, true);
     }
 }

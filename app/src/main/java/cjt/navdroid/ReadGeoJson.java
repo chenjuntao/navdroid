@@ -54,8 +54,11 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         Log.i("ReadGeoJson", "执行完成!, Thread name: " + Thread.currentThread().getName());
-        Toast.makeText(mainActivity, "执行完成，一共读取" + mainActivity.cjtGraph.nodes.size()
-                + "个节点，读取" + mainActivity.cjtGraph.edges.size() + "条边。", Toast.LENGTH_LONG).show();
+        int nodeCount = mainActivity.cjtGraph.nodes.size();
+        int edgeCount = mainActivity.cjtGraph.edges.size();
+        Toast.makeText(mainActivity, "执行完成，一共读取" + nodeCount
+                + "个节点，读取" + edgeCount + "条边。", Toast.LENGTH_LONG).show();
+        mainActivity.txtMsg.setText("一共" + nodeCount + "个节点，" + edgeCount + "条边");
         mainActivity.progress.setVisibility(View.GONE);
         mainActivity.btnNav.setEnabled(true);
         AStar.astarReadGraph(mainActivity.cjtGraph);

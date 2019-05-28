@@ -1,4 +1,4 @@
-var d3geo = require('d3-geo')
+var d3geo = require('d3-geo');
 
 module.exports = createProjector;
 
@@ -8,21 +8,21 @@ function createProjector(lonLatBbox, r) {
   var q = [0, 0];
   var projector = d3geo.geoMercator()
       .center([lonLatBbox.cx, lonLatBbox.cy])
-      .scale(r)
+      .scale(r);
 
   return function(lon, lat) {
     q[0] = lon; q[1] = lat;
 
-    let xyPoint = projector(q)
-
-    // return {
-    //   x: xyPoint[0],
-    //   y: xyPoint[1]
-    // };
+    let xyPoint = projector(q);
 
     return {
-      x: lon*10000000,
-      y: lat*10000000
+      x: xyPoint[0],
+      y: xyPoint[1]
     };
+
+    // return {
+    //   x: lon*10000000,
+    //   y: lat*10000000
+    // };
   };
 }

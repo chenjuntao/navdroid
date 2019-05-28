@@ -9,10 +9,10 @@ import java.io.InputStream;
 
 public class ReadRoadData {
 
-    public void readRoadRawTest(Context context){
+    public static void readRoadRawTest(Context context){
         Integer[] nodex, nodey;
             try {
-                InputStream is = context.getResources().openRawResource(R.raw.changsha_nodes);
+                InputStream is = context.getResources().openRawResource(R.raw.cs_nodes);
                 BufferedInputStream bis = new BufferedInputStream(is);
                 int len = bis.available();
                 byte []b = new byte[len];
@@ -30,13 +30,13 @@ public class ReadRoadData {
                         nodey[i/8] = item;
                     }
                 }
-                Log.i("","sd");
+                Log.i("read road data","nodes count:"+b.length);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         try {
-                InputStream is = context.getResources().openRawResource(R.raw.changsha_edges);
+                InputStream is = context.getResources().openRawResource(R.raw.cs_edges);
                 BufferedInputStream bis = new BufferedInputStream(is);
                 int len = bis.available();
                 byte []b = new byte[len];
@@ -45,14 +45,14 @@ public class ReadRoadData {
                 Log.i("", ""+size);
                 for (int i=0;i<b.length;i+=4){
                     Integer item = byteToInt(new byte[]{b[i], b[i+1], b[i+2], b[i+3]});
-                    Log.i("edge", ""+item);
+                    Log.i("", "edges count"+item);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
     }
 
-    public int byteToInt(byte[] b) {
+    public static int byteToInt(byte[] b) {
         int s = 0;
         int s0 = b[0] & 0xff;// 最低位
         int s1 = b[1] & 0xff;
