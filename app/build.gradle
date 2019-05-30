@@ -27,8 +27,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'org.osmdroid:osmdroid-android:6.1.0'
+
     implementation 'com.eclipsesource.j2v8:j2v8:4.5.0@aar'
-    implementation 'com.cocoahero.android:geojson:1.0.1@jar'
+    implementation(name: 'cjtastar', ext: 'aar')
 }
 
 configurations.all {

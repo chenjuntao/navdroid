@@ -4,7 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-import com.cocoahero.android.geojson.*;
+import cjt.astar.AStar;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,12 +13,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
 
 public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     private int current = 0;
     public MainActivity mainActivity;
-
 
     @Override
     protected void onPreExecute() {
@@ -68,35 +66,6 @@ public class ReadGeoJson extends AsyncTask<Void, Integer, Void> {
     protected void onCancelled() {
         super.onCancelled();
         Log.i("ReadGeoJson", "执行取消!, Thread name: " + Thread.currentThread().getName());
-    }
-
-    public void readGeoJson() {
-
-        try {
-            InputStream is = mainActivity.getResources().openRawResource(R.raw.changsha_road);
-            GeoJSONObject geoJSON = GeoJSON.parse(is);
-            String geojsonType = geoJSON.getType();
-            Log.i("ttt", geojsonType);
-            List<Feature> fcs = ((FeatureCollection) geoJSON).getFeatures();
-
-            for (int i = 0; i < fcs.size(); i++) {
-                Feature feature = fcs.get(i);
-                Geometry geometry = feature.getGeometry();
-                LineString lineString = (LineString) geometry;
-                List<Position> positions = lineString.getPositions();
-                mainActivity.cjtGraph.addLine(positions);
-
-                int newProcess = i * 100 / fcs.size();
-                if (newProcess > current) {
-                    current = newProcess;
-                    publishProgress(current);
-                }
-            }
-            Log.i("", "read cjtGraph complete!");
-        } catch (
-                IOException | JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     public void readJson() {

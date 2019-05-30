@@ -19,3 +19,23 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+#包名不混合大小写
+-dontusemixedcaseclassnames
+
+#混淆时记录日志
+-verbose
+
+#不要进行混淆的类及方法
+-keep class cjt.astar.AStar { public *; }
+-keep class cjt.astar.CjtGraph { public *; }
+-keep class cjt.astar.CjtNode { public *; }
+-keep class cjt.astar.CjtEdge { public *; }
+
+#-keep class cjt.astar.AStar {
+#    public static boolean initV8();
+#    public static void releaseV8();
+#    public static void astarReadGraph(CjtGraph);
+#    public static List<CjtNode> astarNavRoad(CjtGraph, String, String);
+#}

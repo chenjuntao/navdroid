@@ -8,8 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.View;
 import android.widget.*;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Object;
+import cjt.astar.AStar;
+import cjt.astar.CjtGraph;
+import cjt.astar.CjtNode;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.MapEventsReceiver;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    V8 runtime = null;
     MapView map = null;
     public ProgressBar progress = null;
     public Button btnLoad = null;
@@ -40,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        runtime = V8.createV8Runtime();//创建 可放在onCreate()当中
-
-
         //handle permissions first, before map is created. not depicted here
 
         //load/initialize the osmdroid configuration, this can be done
@@ -57,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
         //inflate and create the map
         setContentView(R.layout.activity_main);
 
+        AStar.initV8();
+
         final EditText txtFromId = findViewById(R.id.txtFromId);
         setFromToIdEvents(txtFromId, true);
         final EditText txtToId = findViewById(R.id.txtToId);
@@ -68,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
         btnNav = findViewById(R.id.btnNav);
         txtMsg = findViewById(R.id.txtMsg);
 
-        findViewById(R.id.btn1).setOnClickListener(onClickListener1);
         findViewById(R.id.btnLoad).setOnClickListener(onClickListenerLoad);
         findViewById(R.id.btnNav).setOnClickListener(onClickListenerNav);
 
@@ -142,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        runtime.release();//释放  可放在onDestroy()当中
+        AStar.initV8();
         super.onDestroy();
     }
 
@@ -164,19 +162,6 @@ public class MainActivity extends AppCompatActivity {
         map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 
-    private View.OnClickListener onClickListener1 = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            int result = runtime.executeIntegerScript(""
-                    + "var hello = 'hello, ';\n"
-                    + "var world = 'world!';\n"
-                    + "hello.concat(world).length;\n");
-            Toast.makeText(MainActivity.this, "result:" + result, Toast.LENGTH_LONG).show();
-
-            ReadRoadData.readRoadRawTest(MainActivity.this);
-        }
-    };
-
     private View.OnClickListener onClickListenerLoad = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -196,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 EditText txtTo = (EditText) findViewById(R.id.txtToId);
                 String toId = txtTo.getText().toString();
 
-                List<CjtNode> result = AStar.astarNavRoad(MainActivity.this.cjtGraph,  fromId, toId);
+                List<CjtNode> result = AStar.astarNavRoad(fromId, toId);
 
                 if (result.size() == 0) {
                     Toast.makeText(MainActivity.this, "无结果！", Toast.LENGTH_LONG).show();

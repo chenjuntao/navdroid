@@ -1,1 +1,4 @@
 /build
+
+/src/main/java/cjt/astar/js/node_modules/
+/src/main/java/cjt/astar/js/dist/

@@ -11,7 +11,7 @@ public class ReadSDCard {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             try {
 
-                FileInputStream inputStream = new FileInputStream("/sdcard/changsha_road.geojson");
+                FileInputStream inputStream = new FileInputStream("/sdcard/test.json");
                 byte[] b = new byte[inputStream.available()];
                 inputStream.read(b);
                 Toast.makeText(context, "读取文件成功",
